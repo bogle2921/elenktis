@@ -9,7 +9,7 @@ import (
 )
 
 func GetLoginPage(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+	c.JSON(http.StatusOK, gin.H{"message": "Got login page"})
 }
 
 func PostLoginPage(c *gin.Context) {

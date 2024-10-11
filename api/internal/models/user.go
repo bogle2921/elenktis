@@ -12,8 +12,7 @@ type User struct {
 	ID       int
 	Admin    bool
 	Username string `binding:"required"`
-	Hash     string `binding:"required"`
-	Salt     [16]byte
+	Password string `binding:"required"`
 }
 
 func generateSalt() []byte {
@@ -22,7 +21,7 @@ func generateSalt() []byte {
 		log.Println(err)
 		panic(err)
 	}
-	return salt //store in pg
+	return salt
 }
 func HashPassword(salt []byte, pass string) string {
 	hash := argon2.Key([]byte(pass), salt, 3, 32*1024, 4, 32)

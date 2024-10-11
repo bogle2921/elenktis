@@ -1,0 +1,5 @@
+package utils
+
+const (
+	DB_URL = "postgres://postgres:<PASSWORD>@localhost:5432/elenktis"
+)
