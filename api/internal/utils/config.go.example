@@ -2,4 +2,7 @@ package utils
 
 const (
 	DB_URL = "postgres://postgres:<PASSWORD>@localhost:5432/elenktis"
+	JWT_KEY = "supersecretkey"
+	SSH_Key = "~/.ssh/id_fake"
+	SSH_USER = "root"
 )

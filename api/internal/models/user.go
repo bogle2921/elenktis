@@ -1,29 +1,55 @@
 package models
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"log"
+	"errors"
 
-	"golang.org/x/crypto/argon2"
+	"github.com/bogle2921/elenktis/api/internal/database"
+	"github.com/bogle2921/elenktis/api/internal/utils"
 )
 
 type User struct {
-	ID       int
+	ID       int64
 	Admin    bool
 	Username string `binding:"required"`
 	Password string `binding:"required"`
+	Salt     []byte
 }
 
-func generateSalt() []byte {
-	salt := make([]byte, 16)
-	if _, err := rand.Read(salt); err != nil {
-		log.Println(err)
-		panic(err)
+func (u *User) AddUser() error {
+	query := "insert into users (admin, username, password, salt) values (?, ?, ?, ?)"
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
 	}
-	return salt
+	defer stmt.Close()
+
+	u.Salt = utils.GenerateSalt()
+	u.Password = utils.HashPassword(u.Salt, u.Password)
+	res, err := stmt.Exec(u.Admin, u.Username, u.Password, u.Salt)
+	if err != nil {
+		return err
+	}
+	id, err := res.LastInsertId()
+	u.ID = id
+	return err
 }
-func HashPassword(salt []byte, pass string) string {
-	hash := argon2.Key([]byte(pass), salt, 3, 32*1024, 4, 32)
-	return base64.RawStdEncoding.EncodeToString(hash)
+
+func (u *User) Validate() error {
+	query := "select id, password, salt from users where username = ?"
+	row := database.DB.QueryRow(query, u.Username)
+
+	var returnedPass string
+	var returnedSalt []byte
+	err := row.Scan(&u.ID, &returnedPass, &returnedSalt)
+	if err != nil {
+		return errors.New("invalid credentials")
+	}
+
+	validPassword := utils.VerifyHash(u.Password, returnedPass, returnedSalt)
+	if !validPassword {
+		// bad password
+		return errors.New("invalid credentials")
+	}
+
+	return nil
 }

@@ -32,6 +32,7 @@ const Login = () => {
                 password: password
             }
         }).then(res => {
+            // auth
             return res.json();
         }).catch(err => console.log(`Error: ${err}`));
     }
